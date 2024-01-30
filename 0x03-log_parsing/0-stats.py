@@ -2,14 +2,17 @@
 import sys
 import signal
 
+
 def print_statistics(total_size, status_codes):
     print("File size: {:d}".format(total_size))
     for code in sorted(status_codes):
         print("{:d}: {:d}".format(code, status_codes[code]))
 
+
 def signal_handler(sig, frame):
     print_statistics(total_size, status_codes)
     sys.exit(0)
+
 
 def parse_line(line, total_size, status_codes):
     try:
@@ -29,6 +32,7 @@ def parse_line(line, total_size, status_codes):
     except Exception:
         return total_size, status_codes
 
+
 if __name__ == "__main__":
     total_size = 0
     status_codes = {}
@@ -39,7 +43,9 @@ if __name__ == "__main__":
         line_count = 0
         for line in sys.stdin:
             line_count += 1
-            total_size, status_codes = parse_line(line, total_size, status_codes)
+            total_size, status_codes = parse_line(line,
+                                                  total_size,
+                                                  status_codes)
 
             if line_count == 10:
                 print_statistics(total_size, status_codes)
