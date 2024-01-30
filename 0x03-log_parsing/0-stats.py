@@ -1,56 +1,37 @@
 #!/usr/bin/python3
+'''A script that reads stdin line by line and computes metrics'''
+
+
 import sys
-import signal
 
+cache = {'200': 0, '301': 0, '400': 0, '401': 0,
+         '403': 0, '404': 0, '405': 0, '500': 0}
+total_size = 0
+counter = 0
 
-def print_statistics(total_size, status_codes):
-    print("File size: {:d}".format(total_size))
-    for code in sorted(status_codes):
-        print("{:d}: {:d}".format(code, status_codes[code]))
+try:
+    for line in sys.stdin:
+        line_list = line.split(" ")
+        if len(line_list) > 4:
+            code = line_list[-2]
+            size = int(line_list[-1])
+            if code in cache.keys():
+                cache[code] += 1
+            total_size += size
+            counter += 1
 
+        if counter == 10:
+            counter = 0
+            print('File size: {}'.format(total_size))
+            for key, value in sorted(cache.items()):
+                if value != 0:
+                    print('{}: {}'.format(key, value))
 
-def signal_handler(sig, frame):
-    print_statistics(total_size, status_codes)
-    sys.exit(0)
+except Exception as err:
+    pass
 
-
-def parse_line(line, total_size, status_codes):
-    try:
-        parts = line.split()
-        file_size = int(parts[-1])
-        status_code = int(parts[-2])
-
-        total_size += file_size
-
-        if status_code in status_codes:
-            status_codes[status_code] += 1
-        elif status_code in [200, 301, 400, 401, 403, 404, 405, 500]:
-            status_codes[status_code] = 1
-
-        return total_size, status_codes
-
-    except Exception:
-        return total_size, status_codes
-
-
-if __name__ == "__main__":
-    total_size = 0
-    status_codes = {}
-
-    signal.signal(signal.SIGINT, signal_handler)
-
-    try:
-        line_count = 0
-        for line in sys.stdin:
-            line_count += 1
-            total_size, status_codes = parse_line(line,
-                                                  total_size,
-                                                  status_codes)
-
-            if line_count == 10:
-                print_statistics(total_size, status_codes)
-                line_count = 0
-
-    except KeyboardInterrupt:
-        print_statistics(total_size, status_codes)
-        sys.exit(0)
+finally:
+    print('File size: {}'.format(total_size))
+    for key, value in sorted(cache.items()):
+        if value != 0:
+            print('{}: {}'.format(key, value))
